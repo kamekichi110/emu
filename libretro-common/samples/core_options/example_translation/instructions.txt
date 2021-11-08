@@ -1,0 +1,55 @@
+## Requirements
+
+Make sure the core is libretro conformant:
+both 'libretro_core_options.h', containing the English texts, and
+'libretro_core_options_intl.h', containing the translations,
+must be present in the same directory.
+
+The scripts are not compatible with text filled in by macros or during run time.
+The procedure should not fail - but those texts will not be made translatable.
+
+Also, please verify the existence and correct use of
+
+   #ifdef HAVE_LANGEXTRA
+   
+and/or
+   
+   #ifndef NAVE_NO_LANGEXTRA
+   
+pre-compiler instructions, as translations can't be included on some platforms
+with e.g. limited RAM.
+For an example, refer to an up-to-date core, like gambatte-libretro.
+
+
+## Adding automatic Crowdin sync
+
+Place the 'intl' and '.github' folder, including content, into the root of
+the repository.
+
+In '.github/workflows' are two files:
+'crowdin_prep.yml' & 'crowdin_translate.yml'.
+In each of those are placeholders, which need to be replaced as follows:
+
+For crowdin_prep.yml:
+    <PATH/TO/libretro_core_options.h FILE> (x2)
+        -> replace with the full path from the root of the repo to the 'libretro_core_options.h' file
+
+    <CORE_NAME>
+        -> the name of the core (or repo)
+
+And for crowdin_translate.yml:
+    <0-59> <0-23>
+        -> Minute and hour at which the sync will happen every day. Please enter
+           a random time, to avoid stressing GitHub & Crowdin with many
+           simultaneous runs.
+
+    <CORE_NAME>
+        -> same as above
+
+    <PATH/TO/libretro_core_options_intl.h FILE> (x2)
+        -> replace with the full path from the root of the repo to the 'libretro_core_options_intl.h' file
+
+Create a Pull Request and inform @DisasterMo, either on Crowdin or, preferably,
+on [discord](https://discord.gg/xuMbcVuF).
+
+The initial sync cycle should happen automatically within 24h after the merge.

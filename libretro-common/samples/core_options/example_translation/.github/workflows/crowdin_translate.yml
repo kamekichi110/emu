@@ -1,21 +1,24 @@
-# Recreate libretro_core_options_intl.h using translations form Crowdin
+# Download translations form Crowdin & Recreate libretro_core_options_intl.h
 
 name: Crowdin Translation Integration
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - 'intl/*/*'
+  schedule:
+  # please choose a random time & weekday to avoid all repos synching at the same time
+    - cron: '<0-59> <0-23> * * 5'  # Fridays at , UTC
 
 jobs:
   create_intl_file:
     runs-on: ubuntu-latest
     steps:
+      - name: Setup Java JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
       - name: Setup Python
         uses: actions/setup-python@v2
-        
+
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -24,15 +27,17 @@ jobs:
 
       - name: Create intl file
         shell: bash
+        env:
+          CROWDIN_API_KEY: ${{ secrets.CROWDIN_API_KEY }}
         run: |
-          python3 intl/crowdin_intl.py '<path/to/libretro_core_options.h directory>'
+          python3 intl/download_workflow.py $CROWDIN_API_KEY "<CORE_NAME>" "<PATH/TO>/libretro_core_options_intl.h"
 
       - name: Commit files
         run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.email "github-actions@github.com"
           git config --local user.name "github-actions[bot]"
-          git add <path/to/libretro_core_options_intl.h file>
-          git commit -m "Recreate libretro_core_options_intl.h" -a
+          git add intl/*_workflow.py "<PATH/TO>/libretro_core_options_intl.h"
+          git commit -m "Fetch translations & Recreate libretro_core_options_intl.h"
 
       - name: GitHub Push
         uses: ad-m/github-push-action@v0.6.0
