@@ -9,7 +9,6 @@ The original files will be preserved as *.v1
 """
 import core_option_regex as cor
 import os
-import sys
 import glob
 
 
