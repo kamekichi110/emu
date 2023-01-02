@@ -417,6 +417,11 @@ def create_v2_code_file(struct_text, file_name):
                       '   &options_id,      /* RETRO_LANGUAGE_INDONESIAN */\n' \
                       '   &options_sv,      /* RETRO_LANGUAGE_SWEDISH */\n' \
                       '   &options_uk,      /* RETRO_LANGUAGE_UKRAINIAN */\n' \
+                      '   &options_cs,      /* RETRO_LANGUAGE_CZECH */\n' \
+                      '   &options_val,     /* RETRO_LANGUAGE_CATALAN_VALENCIA */\n' \
+                      '   &options_ca,      /* RETRO_LANGUAGE_CATALAN */\n' \
+                      '   &options_en,      /* RETRO_LANGUAGE_BRITISH_ENGLISH */\n' \
+                      '   &options_hu,      /* RETRO_LANGUAGE_HUNGARIAN */\n' \
                     + out_text[intl.end(2):]
          out_text = p_set.sub(new_set, new_intl)
       else:

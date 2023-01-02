@@ -140,33 +140,37 @@ struct retro_core_options_v2 options_us = {
 #ifndef HAVE_NO_LANGEXTRA
 struct retro_core_option_definition *option_defs_intl[RETRO_LANGUAGE_LAST] = {
    option_defs_us, /* RETRO_LANGUAGE_ENGLISH */
-   NULL,           /* RETRO_LANGUAGE_JAPANESE */
-   option_defs_fr, /* RETRO_LANGUAGE_FRENCH */
-   NULL,           /* RETRO_LANGUAGE_SPANISH */
-   NULL,           /* RETRO_LANGUAGE_GERMAN */
-   NULL,           /* RETRO_LANGUAGE_ITALIAN */
-   NULL,           /* RETRO_LANGUAGE_DUTCH */
-   NULL,           /* RETRO_LANGUAGE_PORTUGUESE_BRAZIL */
-   NULL,           /* RETRO_LANGUAGE_PORTUGUESE_PORTUGAL */
-   NULL,           /* RETRO_LANGUAGE_RUSSIAN */
-   NULL,           /* RETRO_LANGUAGE_KOREAN */
-   NULL,           /* RETRO_LANGUAGE_CHINESE_TRADITIONAL */
-   NULL,           /* RETRO_LANGUAGE_CHINESE_SIMPLIFIED */
-   NULL,           /* RETRO_LANGUAGE_ESPERANTO */
-   NULL,           /* RETRO_LANGUAGE_POLISH */
-   NULL,           /* RETRO_LANGUAGE_VIETNAMESE */
-   NULL,           /* RETRO_LANGUAGE_ARABIC */
-   NULL,           /* RETRO_LANGUAGE_GREEK */
-   NULL,           /* RETRO_LANGUAGE_TURKISH */
-   NULL,           /* RETRO_LANGUAGE_SLOVAK */
-   NULL,           /* RETRO_LANGUAGE_PERSIAN */
-   NULL,           /* RETRO_LANGUAGE_HEBREW */
-   NULL,           /* RETRO_LANGUAGE_ASTURIAN */
-   NULL,           /* RETRO_LANGUAGE_FINNISH */
-   NULL,           /* RETRO_LANGUAGE_INDONESIAN */
-   NULL,           /* RETRO_LANGUAGE_SWEDISH */
-   NULL,           /* RETRO_LANGUAGE_UKRAINIAN */
-   NULL,           /* RETRO_LANGUAGE_CZECH */
+   &options_ja,      /* RETRO_LANGUAGE_JAPANESE */
+   &options_fr,      /* RETRO_LANGUAGE_FRENCH */
+   &options_es,      /* RETRO_LANGUAGE_SPANISH */
+   &options_de,      /* RETRO_LANGUAGE_GERMAN */
+   &options_it,      /* RETRO_LANGUAGE_ITALIAN */
+   &options_nl,      /* RETRO_LANGUAGE_DUTCH */
+   &options_pt_br,   /* RETRO_LANGUAGE_PORTUGUESE_BRAZIL */
+   &options_pt_pt,   /* RETRO_LANGUAGE_PORTUGUESE_PORTUGAL */
+   &options_ru,      /* RETRO_LANGUAGE_RUSSIAN */
+   &options_ko,      /* RETRO_LANGUAGE_KOREAN */
+   &options_cht,     /* RETRO_LANGUAGE_CHINESE_TRADITIONAL */
+   &options_chs,     /* RETRO_LANGUAGE_CHINESE_SIMPLIFIED */
+   &options_eo,      /* RETRO_LANGUAGE_ESPERANTO */
+   &options_pl,      /* RETRO_LANGUAGE_POLISH */
+   &options_vn,      /* RETRO_LANGUAGE_VIETNAMESE */
+   &options_ar,      /* RETRO_LANGUAGE_ARABIC */
+   &options_el,      /* RETRO_LANGUAGE_GREEK */
+   &options_tr,      /* RETRO_LANGUAGE_TURKISH */
+   &options_sk,      /* RETRO_LANGUAGE_SLOVAK */
+   &options_fa,      /* RETRO_LANGUAGE_PERSIAN */
+   &options_he,      /* RETRO_LANGUAGE_HEBREW */
+   &options_ast,     /* RETRO_LANGUAGE_ASTURIAN */
+   &options_fi,      /* RETRO_LANGUAGE_FINNISH */
+   &options_id,      /* RETRO_LANGUAGE_INDONESIAN */
+   &options_sv,      /* RETRO_LANGUAGE_SWEDISH */
+   &options_uk,      /* RETRO_LANGUAGE_UKRAINIAN */
+   &options_cs,      /* RETRO_LANGUAGE_CZECH */
+   &options_val,     /* RETRO_LANGUAGE_CATALAN_VALENCIA */
+   &options_ca,      /* RETRO_LANGUAGE_CATALAN */
+   &options_en,      /* RETRO_LANGUAGE_BRITISH_ENGLISH */
+   &options_hu,      /* RETRO_LANGUAGE_HUNGARIAN */
 };
 #endif
 
