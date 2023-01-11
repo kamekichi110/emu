@@ -23,13 +23,16 @@ import sys
 import os
 import re
 
-banned_ext = [ 'AMD', 'APPLE', 'NV', 'NVX', 'ATI', '3DLABS', 'SUN', 'SGI', 'SGIX', 'SGIS', 'INTEL', '3DFX', 'IBM', 'MESA', 'GREMEDY', 'OML', 'PGI', 'I3D', 'INGL', 'MTX', 'QCOM', 'IMG', 'ANGLE', 'SUNX', 'INGR' ]
+banned_ext = ['AMD', 'APPLE', 'NV', 'NVX', 'ATI', '3DLABS', 'SUN', 'SGI', 'SGIX', 'SGIS', 'INTEL', '3DFX', 'IBM',
+              'MESA', 'GREMEDY', 'OML', 'PGI', 'I3D', 'INGL', 'MTX', 'QCOM', 'IMG', 'ANGLE', 'SUNX', 'INGR']
+
 
 def noext(sym):
    for ext in banned_ext:
       if sym.endswith(ext):
          return False
    return True
+
 
 def fix_multiline_functions(lines):
    fixed_lines = []
@@ -41,7 +44,7 @@ def fix_multiline_functions(lines):
          if len(temp_lines) > 0:
             if line.count(')') > line.count('('):
                temp_lines.append(line)
-               fixed_line = re.sub(' +',' ', ''.join(temp_lines).replace('\n','').replace('\t',''))
+               fixed_line = re.sub(' +', ' ', ''.join(temp_lines).replace('\n', '').replace('\t', ''))
                fixed_lines.append(fixed_line)
                temp_lines = []
             else:
@@ -49,6 +52,7 @@ def fix_multiline_functions(lines):
          else:
             fixed_lines.append(line)
    return fixed_lines
+
 
 def find_gl_symbols(lines):
    typedefs = []
@@ -58,10 +62,12 @@ def find_gl_symbols(lines):
       m = re.search(r'^typedef.+PFN(\S+)PROC.+$', line)
       g = re.search(r'^GLAPI\s(.+)\s(.+)\s(gl\S+)\W*\((.+)\).*', line)
       if g and noext(g.group(3)):
-         typedefs.append('typedef ' + g.group(1) + ' (APIENTRYP RGLSYM' + g.group(3).upper() + 'PROC) (' + g.group(4) + ');')
+         typedefs.append(
+            'typedef ' + g.group(1) + ' (APIENTRYP RGLSYM' + g.group(3).upper() + 'PROC) (' + g.group(4) + ');')
          syms.append(g.group(3))
 
    return (typedefs, syms)
+
 
 def generate_defines(gl_syms):
    res = []
@@ -69,15 +75,19 @@ def generate_defines(gl_syms):
       res.append('#define {} __rglgen_{}'.format(line, line))
    return res
 
+
 def generate_declarations(gl_syms):
    return ['RGLSYM' + x.upper() + 'PROC ' + x + ';' for x in gl_syms]
+
 
 def generate_macros(gl_syms):
    return ['    SYM(' + x.replace('gl', '') + '),' for x in gl_syms]
 
+
 def dump(f, lines):
    f.write('\n'.join(lines))
    f.write('\n\n')
+
 
 if __name__ == '__main__':
 
@@ -104,8 +114,10 @@ if __name__ == '__main__':
       f.write('#endif\n')
 
       f.write('#ifdef GL_APIENTRY\n')
-      f.write('typedef void (GL_APIENTRY *RGLGENGLDEBUGPROC)(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar*, GLvoid*);\n')
-      f.write('typedef void (GL_APIENTRY *RGLGENGLDEBUGPROCKHR)(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar*, GLvoid*);\n')
+      f.write(
+         'typedef void (GL_APIENTRY *RGLGENGLDEBUGPROC)(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar*, GLvoid*);\n')
+      f.write(
+         'typedef void (GL_APIENTRY *RGLGENGLDEBUGPROCKHR)(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar*, GLvoid*);\n')
       f.write('#else\n')
       f.write('#ifndef APIENTRY\n')
       f.write('#define APIENTRY\n')
@@ -113,8 +125,10 @@ if __name__ == '__main__':
       f.write('#ifndef APIENTRYP\n')
       f.write('#define APIENTRYP APIENTRY *\n')
       f.write('#endif\n')
-      f.write('typedef void (APIENTRY *RGLGENGLDEBUGPROCARB)(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar*, GLvoid*);\n')
-      f.write('typedef void (APIENTRY *RGLGENGLDEBUGPROC)(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar*, GLvoid*);\n')
+      f.write(
+         'typedef void (APIENTRY *RGLGENGLDEBUGPROCARB)(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar*, GLvoid*);\n')
+      f.write(
+         'typedef void (APIENTRY *RGLGENGLDEBUGPROC)(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar*, GLvoid*);\n')
       f.write('#endif\n')
 
       f.write('#ifndef GL_OES_EGL_image\n')
