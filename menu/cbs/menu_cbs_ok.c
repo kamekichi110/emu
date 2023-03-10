@@ -386,6 +386,10 @@ static enum msg_hash_enums action_ok_dl_to_enum(unsigned lbl)
 #endif
       case ACTION_OK_DL_MENU_VIEWS_SETTINGS_LIST:
          return MENU_ENUM_LABEL_DEFERRED_MENU_VIEWS_SETTINGS_LIST;
+#ifdef _3DS
+      case ACTION_OK_DL_MENU_3DS_SETTINGS_LIST:
+         return MENU_ENUM_LABEL_DEFERRED_MENU_3DS_SETTINGS_LIST;
+#endif
       case ACTION_OK_DL_SETTINGS_VIEWS_SETTINGS_LIST:
          return MENU_ENUM_LABEL_DEFERRED_SETTINGS_VIEWS_SETTINGS_LIST;
       case ACTION_OK_DL_QUICK_MENU_VIEWS_SETTINGS_LIST:
@@ -1609,6 +1613,9 @@ int generic_action_ok_displaylist_push(const char *path,
       case ACTION_OK_DL_MENU_BOTTOM_SETTINGS_LIST:
 #endif
       case ACTION_OK_DL_MENU_VIEWS_SETTINGS_LIST:
+#ifdef _3DS
+      case ACTION_OK_DL_MENU_3DS_SETTINGS_LIST:
+#endif
       case ACTION_OK_DL_SETTINGS_VIEWS_SETTINGS_LIST:
       case ACTION_OK_DL_QUICK_MENU_VIEWS_SETTINGS_LIST:
       case ACTION_OK_DL_QUICK_MENU_OVERRIDE_OPTIONS_LIST:
@@ -5913,6 +5920,9 @@ DEFAULT_ACTION_OK_FUNC(action_ok_menu_bottom_list, ACTION_OK_DL_MENU_BOTTOM_SETT
 #endif
 DEFAULT_ACTION_OK_FUNC(action_ok_quick_menu_override_options, ACTION_OK_DL_QUICK_MENU_OVERRIDE_OPTIONS_LIST)
 DEFAULT_ACTION_OK_FUNC(action_ok_menu_views_list, ACTION_OK_DL_MENU_VIEWS_SETTINGS_LIST)
+#ifdef _3DS
+DEFAULT_ACTION_OK_FUNC(action_ok_menu_3ds_list, ACTION_OK_DL_MENU_3DS_SETTINGS_LIST)
+#endif
 DEFAULT_ACTION_OK_FUNC(action_ok_settings_views_list, ACTION_OK_DL_SETTINGS_VIEWS_SETTINGS_LIST)
 DEFAULT_ACTION_OK_FUNC(action_ok_quick_menu_views_list, ACTION_OK_DL_QUICK_MENU_VIEWS_SETTINGS_LIST)
 DEFAULT_ACTION_OK_FUNC(action_ok_power_management_list, ACTION_OK_DL_POWER_MANAGEMENT_SETTINGS_LIST)
@@ -8486,6 +8496,9 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          {MENU_ENUM_LABEL_MENU_BOTTOM_SETTINGS,                action_ok_menu_bottom_list},
 #endif
          {MENU_ENUM_LABEL_MENU_VIEWS_SETTINGS,                 action_ok_menu_views_list},
+#ifdef _3DS
+         {MENU_ENUM_LABEL_MENU_3DS_SETTINGS,                   action_ok_menu_3ds_list},
+#endif
          {MENU_ENUM_LABEL_QUICK_MENU_OVERRIDE_OPTIONS,         action_ok_quick_menu_override_options},
          {MENU_ENUM_LABEL_SETTINGS_VIEWS_SETTINGS,             action_ok_settings_views_list},
          {MENU_ENUM_LABEL_QUICK_MENU_VIEWS_SETTINGS,           action_ok_quick_menu_views_list},

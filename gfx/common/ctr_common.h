@@ -1,5 +1,5 @@
 /*  RetroArch - A frontend for libretro.
- *  Copyright (C) 2014-2017 - Ali Bouahl
+ *  Copyright (C) 2014-2017 - Ali Bouhlel
  *
  *  RetroArch is free software: you can redistribute it and/or modify it under the terms
  *  of the GNU General Public License as published by the Free Software Found-
@@ -39,12 +39,22 @@ extern u8* gfxTopRightFramebuffers[2];
 extern u8* gfxBottomFramebuffers[2];
 #endif
 
-#ifdef CONSOLE_LOG
+//#ifdef CONSOLE_LOG
 extern PrintConsole* ctrConsole;
-#endif 
+//#endif 
 
 extern const u8 ctr_sprite_shbin[];
 extern const u32 ctr_sprite_shbin_size;
+
+static const bool bottom_font_enable;
+static const int bottom_font_color_red;
+static const int bottom_font_color_green;
+static const int bottom_font_color_blue;
+static const int bottom_font_color_opacity;
+
+static const unsigned video_ctr_dual_deadzone;
+static const int video_ctr_dual_offset_x;
+static const int video_ctr_dual_offset_y;
 
 typedef struct
 {
@@ -71,6 +81,25 @@ typedef enum
 
 typedef enum
 {
+   CTR_BOTTOM_MODE_DISABLED = 0,
+   CTR_BOTTOM_MODE_CONTROL,
+   CTR_BOTTOM_MODE_OVERLAY,
+   CTR_BOTTOM_MODE_RETROARCH,
+   CTR_BOTTOM_MODE_CONSOLE,
+   CTR_BOTTOM_MODE_LAST
+} ctr_bottom_display_mode_enum;
+
+typedef enum
+{
+   CTR_VIDEO_TARGET_TOP = 0,
+   CTR_VIDEO_TARGET_BOTTOM,
+   CTR_VIDEO_TARGET_MIRROR,
+   CTR_VIDEO_TARGET_DUAL,
+   CTR_VIDEO_TARGET_LAST
+} ctr_video_target_enum;
+
+typedef enum
+{
    CTR_BOTTOM_MENU_NOT_AVAILABLE = 0,
    CTR_BOTTOM_MENU_DEFAULT,
    CTR_BOTTOM_MENU_SELECT
@@ -89,6 +118,8 @@ typedef struct ctr_video
    }drawbuffers;
    void* depthbuffer;
 
+   bool custom_framebuffer_width;
+
    struct
    {
       uint32_t* display_list;
@@ -98,7 +129,10 @@ typedef struct ctr_video
       int texture_width;
       int texture_height;
       ctr_scale_vector_t scale_vector;
+	  ctr_scale_vector_t scale_vector_bottom;
       ctr_vertex_t* frame_coords;
+	  ctr_vertex_t* frame_coords_bottom;
+
    }menu;
 
    uint32_t* display_list;
@@ -110,6 +144,11 @@ typedef struct ctr_video
 
    ctr_scale_vector_t scale_vector;
    ctr_vertex_t* frame_coords;
+
+   ctr_vertex_t* frame_coords_tmp;
+	  
+   ctr_scale_vector_t scale_vector_bottom;
+   ctr_vertex_t* frame_coords_bottom;
 
    DVLB_s*         dvlb;
    shaderProgram_s shader;
@@ -141,6 +180,8 @@ typedef struct ctr_video
    ctr_bottom_menu bottom_menu;
    ctr_bottom_menu prev_bottom_menu;
    struct ctr_bottom_texture_data *bottom_textures;
+   struct ctr_bottom_texture_data *bottom_menu_textures;
+   struct ctr_bottom_texture_data *bottom_kbd_textures;
 
    volatile bool vsync_event_pending;
 #ifdef HAVE_OVERLAY
@@ -168,6 +209,7 @@ typedef struct ctr_video
    bool bottom_is_idle;
    bool bottom_is_fading;
    char state_date[CTR_STATE_DATE_SIZE];
+
 } ctr_video_t;
 
 typedef struct ctr_texture
@@ -186,9 +228,26 @@ struct ctr_overlay_data
 {
    ctr_texture_t texture;
    ctr_vertex_t* frame_coords;
+   ctr_vertex_t* frame_coords_bottom;
    ctr_scale_vector_t scale_vector;
    float alpha_mod;
 };
 #endif
 
+struct ctr_bottom_texture_data
+{
+   uintptr_t texture;
+   ctr_vertex_t* frame_coords;
+   ctr_scale_vector_t scale_vector;
+};
+
+static INLINE void ctr_set_scale_vector(ctr_scale_vector_t* vec,
+      int viewport_width, int viewport_height,
+      int texture_width, int texture_height)
+{
+   vec->x = -2.0f / viewport_width;
+   vec->y = -2.0f / viewport_height;
+   vec->u =  1.0f / texture_width;
+   vec->v = -1.0f / texture_height;
+}
 #endif /* CTR_COMMON_H__ */
