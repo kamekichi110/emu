@@ -2066,6 +2066,14 @@ MSG_HASH(
    "Automàticament silencia l'àudio quan s'usa l'avançament ràpid."
    )
 MSG_HASH(
+  MENU_ENUM_LABEL_VALUE_AUDIO_REWIND_MUTE,
+  "Mute When Rewinding"
+  )
+MSG_HASH(
+  MENU_ENUM_SUBLABEL_AUDIO_REWIND_MUTE,
+  "Automatically mute audio when using rewinding."
+  )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_AUDIO_VOLUME,
    "Guany de volum (dB)"
    )
