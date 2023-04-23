@@ -8652,7 +8652,7 @@ unsigned menu_displaylist_build_list(
                {MENU_ENUM_LABEL_DESKTOP_MENU_ENABLE,                                   PARSE_ONLY_BOOL,   true},
 #endif
 #ifdef _3DS
-               {MENU_ENUM_LABEL_VIDEO_3DS_DISPLAY_MODE,                                PARSE_ONLY_UINT,   true},
+               {MENU_ENUM_LABEL_VIDEO_CTR_DISPLAY_MODE,                                PARSE_ONLY_UINT,   true},
                {MENU_ENUM_LABEL_MENU_BOTTOM_SETTINGS,                                  PARSE_ACTION,      true},
 #endif
             };
@@ -9219,6 +9219,83 @@ unsigned menu_displaylist_build_list(
             }
          }
          break;
+
+#ifdef _3DS
+      case DISPLAYLIST_MENU_3DS_SETTINGS_LIST:
+         {
+            unsigned ctr_bottom_display_mode = settings->uints.ctr_bottom_display_mode;
+            unsigned video_ctr_render_target = settings->uints.video_ctr_render_target;
+
+            menu_displaylist_build_info_selective_t build_list[] = {
+               {MENU_ENUM_LABEL_INPUT_CTR_SENSORS_ENABLE,  PARSE_ONLY_BOOL,  true},
+               {MENU_ENUM_LABEL_INPUT_CTR_MOUSE_MODE,      PARSE_ONLY_UINT,  true},
+               {MENU_ENUM_LABEL_INPUT_CTR_SENSORS_CURSOR,  PARSE_ONLY_BOOL,  true},
+               {MENU_ENUM_LABEL_INPUT_CTR_LIGHTGUN_ABS,    PARSE_ONLY_BOOL,  true},
+               {MENU_ENUM_LABEL_VIDEO_CTR_DISPLAY_MODE,    PARSE_ONLY_UINT,  true},
+               {MENU_ENUM_LABEL_CTR_BOTTOM_DISPLAY_MODE,   PARSE_ONLY_UINT,  true},
+
+               {MENU_ENUM_LABEL_VIDEO_CTR_RENDER_TARGET,   PARSE_ONLY_UINT,  false},
+               {MENU_ENUM_LABEL_VIDEO_CTR_DUAL_DEADZONE,   PARSE_ONLY_UINT,  false},
+               {MENU_ENUM_LABEL_VIDEO_CTR_DUAL_OFFSET_X,   PARSE_ONLY_INT,   false},
+               {MENU_ENUM_LABEL_VIDEO_CTR_DUAL_OFFSET_Y,   PARSE_ONLY_INT,   false},
+
+               {MENU_ENUM_LABEL_CTR_BOTTOM_DEBUG_ENABLE,   PARSE_ONLY_BOOL,  false},
+               {MENU_ENUM_LABEL_CTR_SAVE_STATE_TO_RAM,     PARSE_ONLY_BOOL,  false},
+
+               {MENU_ENUM_LABEL_CTR_BOTTOM_LCD_ENABLE,     PARSE_ONLY_BOOL,  false},
+
+               {MENU_ENUM_LABEL_CTR_BOTTOM_CONSOLE_ENABLE, PARSE_ONLY_BOOL,  false},
+            };
+
+            for (i = 0; i < ARRAY_SIZE(build_list); i++)
+            {
+               switch (build_list[i].enum_idx)
+               {
+                  case MENU_ENUM_LABEL_VIDEO_CTR_RENDER_TARGET:
+                     if (ctr_bottom_display_mode == CTR_BOTTOM_MODE_RETROARCH)
+                        build_list[i].checked = true;
+                     break;
+                  case MENU_ENUM_LABEL_VIDEO_CTR_DUAL_DEADZONE:
+                  case MENU_ENUM_LABEL_VIDEO_CTR_DUAL_OFFSET_X:
+                  case MENU_ENUM_LABEL_VIDEO_CTR_DUAL_OFFSET_Y:
+                     if (ctr_bottom_display_mode == CTR_BOTTOM_MODE_RETROARCH)
+                     {
+                        if (video_ctr_render_target == CTR_VIDEO_TARGET_DUAL)
+                           build_list[i].checked = true;
+                     }
+                     break;
+                  case MENU_ENUM_LABEL_CTR_BOTTOM_DEBUG_ENABLE:
+                  case MENU_ENUM_LABEL_CTR_SAVE_STATE_TO_RAM:
+                     if (ctr_bottom_display_mode == CTR_BOTTOM_MODE_CONTROL)
+                        build_list[i].checked = true;
+                     break;
+                  case MENU_ENUM_LABEL_CTR_BOTTOM_LCD_ENABLE:
+                     if (ctr_bottom_display_mode == CTR_BOTTOM_MODE_OVERLAY)
+                        build_list[i].checked = true;
+                     break;
+                  case MENU_ENUM_LABEL_CTR_BOTTOM_CONSOLE_ENABLE:
+                     if (ctr_bottom_display_mode == CTR_BOTTOM_MODE_CONSOLE)
+                        build_list[i].checked = true;
+                     break;
+                  default:
+                     break;
+               }
+            }
+
+            for (i = 0; i < ARRAY_SIZE(build_list); i++)
+            {
+               if (!build_list[i].checked && !include_everything)
+                  continue;
+
+               if (MENU_DISPLAYLIST_PARSE_SETTINGS_ENUM(list,
+                        build_list[i].enum_idx,  build_list[i].parse_type,
+                        false) == 0)
+                  count++;
+            }
+         }
+         break;
+#endif
+
       case DISPLAYLIST_MENU_FILE_BROWSER_SETTINGS_LIST:
          {
             menu_displaylist_build_info_t build_list[] = {
@@ -9850,6 +9927,9 @@ unsigned menu_displaylist_build_list(
             bool settings_show_ai_service = settings->bools.settings_show_ai_service;
 #endif
             menu_displaylist_build_info_selective_t build_list[] = {
+#ifdef _3DS
+               {MENU_ENUM_LABEL_MENU_3DS_SETTINGS,           PARSE_ACTION, true},
+#endif
                {MENU_ENUM_LABEL_DRIVER_SETTINGS,             PARSE_ACTION, true},
                {MENU_ENUM_LABEL_VIDEO_SETTINGS,              PARSE_ACTION, true},
                {MENU_ENUM_LABEL_AUDIO_SETTINGS,              PARSE_ACTION, true},
@@ -10007,7 +10087,7 @@ unsigned menu_displaylist_build_list(
             if ((device_model == 2) || (device_model == 4) || (device_model == 5))
             {
                if (MENU_DISPLAYLIST_PARSE_SETTINGS_ENUM(list,
-                        MENU_ENUM_LABEL_NEW3DS_SPEEDUP_ENABLE,
+                        MENU_ENUM_LABEL_CTR_N3DS_SPEEDUP_ENABLE,
                         PARSE_ONLY_BOOL, false) == 0)
                   count++;
             }
@@ -10628,37 +10708,17 @@ unsigned menu_displaylist_build_list(
 #ifdef _3DS
       case DISPLAYLIST_MENU_BOTTOM_SETTINGS_LIST:
          {
-            bool video_3ds_lcd_bottom = settings->bools.video_3ds_lcd_bottom;
+            bool ctr_bottom_lcd_enable = settings->bools.ctr_bottom_lcd_enable;
 
             menu_displaylist_build_info_selective_t build_list[] = {
-               {MENU_ENUM_LABEL_VIDEO_3DS_LCD_BOTTOM,      PARSE_ONLY_BOOL,  true},
-               {MENU_ENUM_LABEL_BOTTOM_ASSETS_DIRECTORY,   PARSE_ONLY_DIR,   false},
-               {MENU_ENUM_LABEL_BOTTOM_FONT_ENABLE,        PARSE_ONLY_BOOL,  false},
-               {MENU_ENUM_LABEL_BOTTOM_FONT_COLOR_RED,     PARSE_ONLY_INT,   false},
-               {MENU_ENUM_LABEL_BOTTOM_FONT_COLOR_GREEN,   PARSE_ONLY_INT,   false},
-               {MENU_ENUM_LABEL_BOTTOM_FONT_COLOR_BLUE,    PARSE_ONLY_INT,   false},
-               {MENU_ENUM_LABEL_BOTTOM_FONT_COLOR_OPACITY, PARSE_ONLY_INT,   false},
-               {MENU_ENUM_LABEL_BOTTOM_FONT_SCALE,         PARSE_ONLY_FLOAT, false},
+               {MENU_ENUM_LABEL_CTR_BOTTOM_ASSETS_DIRECTORY,   PARSE_ONLY_DIR,   true},
+               {MENU_ENUM_LABEL_CTR_BOTTOM_FONT_ENABLE,        PARSE_ONLY_BOOL,  true},
+               {MENU_ENUM_LABEL_CTR_BOTTOM_FONT_COLOR_RED,     PARSE_ONLY_INT,   true},
+               {MENU_ENUM_LABEL_CTR_BOTTOM_FONT_COLOR_GREEN,   PARSE_ONLY_INT,   true},
+               {MENU_ENUM_LABEL_CTR_BOTTOM_FONT_COLOR_BLUE,    PARSE_ONLY_INT,   true},
+               {MENU_ENUM_LABEL_CTR_BOTTOM_FONT_COLOR_OPACITY, PARSE_ONLY_INT,   true},
+               {MENU_ENUM_LABEL_CTR_BOTTOM_FONT_SCALE,         PARSE_ONLY_FLOAT, true},
             };
-
-            for (i = 0; i < ARRAY_SIZE(build_list); i++)
-            {
-               switch (build_list[i].enum_idx)
-               {
-                  case MENU_ENUM_LABEL_BOTTOM_ASSETS_DIRECTORY:
-                  case MENU_ENUM_LABEL_BOTTOM_FONT_ENABLE:
-                  case MENU_ENUM_LABEL_BOTTOM_FONT_COLOR_RED:
-                  case MENU_ENUM_LABEL_BOTTOM_FONT_COLOR_GREEN:
-                  case MENU_ENUM_LABEL_BOTTOM_FONT_COLOR_BLUE:
-                  case MENU_ENUM_LABEL_BOTTOM_FONT_COLOR_OPACITY:
-                  case MENU_ENUM_LABEL_BOTTOM_FONT_SCALE:
-                     if (video_3ds_lcd_bottom)
-                        build_list[i].checked = true;
-                     break;
-                  default:
-                     break;
-               }
-            }
 
             for (i = 0; i < ARRAY_SIZE(build_list); i++)
             {
@@ -13353,6 +13413,9 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
       case DISPLAYLIST_ACCOUNTS_LIST:
       case DISPLAYLIST_MENU_FILE_BROWSER_SETTINGS_LIST:
       case DISPLAYLIST_MENU_VIEWS_SETTINGS_LIST:
+#ifdef _3DS
+      case DISPLAYLIST_MENU_3DS_SETTINGS_LIST:
+#endif
       case DISPLAYLIST_LAKKA_SERVICES_LIST:
       case DISPLAYLIST_MIDI_SETTINGS_LIST:
       case DISPLAYLIST_CRT_SWITCHRES_SETTINGS_LIST:

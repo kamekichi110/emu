@@ -126,10 +126,12 @@ typedef struct settings
 #endif
       int content_favorites_size;
 #ifdef _3DS
-      int bottom_font_color_red;
-      int bottom_font_color_green;
-      int bottom_font_color_blue;
-      int bottom_font_color_opacity;
+	  int video_ctr_dual_offset_x;
+	  int video_ctr_dual_offset_y;
+      int ctr_bottom_font_color_red;
+      int ctr_bottom_font_color_green;
+      int ctr_bottom_font_color_blue;
+      int ctr_bottom_font_color_opacity;
 #endif
 #ifdef HAVE_XMB
       int menu_xmb_title_margin;
@@ -235,7 +237,14 @@ typedef struct settings
       unsigned video_stream_quality;
       unsigned video_record_scale_factor;
       unsigned video_stream_scale_factor;
-      unsigned video_3ds_display_mode;
+#ifdef _3DS
+      unsigned ctr_bottom_display_mode;
+      unsigned video_ctr_display_mode;
+      unsigned video_ctr_render_target;
+      unsigned video_ctr_dual_deadzone;
+
+      unsigned input_ctr_mouse_mode;
+#endif
       unsigned video_dingux_ipu_filter_type;
       unsigned video_dingux_refresh_rate;
       unsigned video_dingux_rs90_softfilter_type;
@@ -403,7 +412,7 @@ typedef struct settings
       float input_axis_threshold;
       float input_analog_sensitivity;
 #ifdef _3DS
-      float bottom_font_scale;
+      float ctr_bottom_font_scale;
 #endif
    } floats;
 
@@ -528,7 +537,7 @@ typedef struct settings
       char directory_menu_content[PATH_MAX_LENGTH];
       char streaming_title[PATH_MAX_LENGTH];
 #ifdef _3DS
-      char directory_bottom_assets[PATH_MAX_LENGTH];
+      char directory_ctr_bottom_assets[PATH_MAX_LENGTH];
 #endif
       char log_dir[PATH_MAX_LENGTH];
    } paths;
@@ -575,7 +584,9 @@ typedef struct settings
       bool video_memory_show;
       bool video_msg_bgcolor_enable;
 #ifdef _3DS
-      bool video_3ds_lcd_bottom;
+      bool ctr_bottom_lcd_enable;
+      bool ctr_bottom_console_enable;
+      bool ctr_bottom_debug_enable;
 #endif
       bool video_wiiu_prefer_drc;
       bool video_notch_write_over_enable;
@@ -624,6 +635,12 @@ typedef struct settings
       bool input_auto_mouse_grab;
 #if defined(HAVE_DINPUT) || defined(HAVE_WINRAWINPUT)
       bool input_nowinkey_enable;
+#endif
+
+#ifdef _3DS
+      bool input_ctr_sensors_enable;
+      bool input_ctr_sensors_cursor;
+      bool input_ctr_lightgun_abs;
 #endif
 
       /* Frame time counter */
@@ -964,8 +981,9 @@ typedef struct settings
 
       bool gamemode_enable;
 #ifdef _3DS
-      bool new3ds_speedup_enable;
-      bool bottom_font_enable;
+      bool ctr_save_state_to_ram;
+      bool ctr_n3ds_speedup_enable;
+      bool ctr_bottom_font_enable;
 #endif
 
 #ifdef ANDROID

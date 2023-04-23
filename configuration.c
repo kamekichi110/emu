@@ -1600,7 +1600,7 @@ static struct config_path_setting *populate_settings_path(
    SETTING_PATH("bundle_assets_dst_path_subdir", settings->paths.bundle_assets_dst_subdir, false, NULL, true);
 #ifdef _3DS
    SETTING_PATH("bottom_assets_directory",
-         settings->paths.directory_bottom_assets, true, NULL, true);
+         settings->paths.directory_ctr_bottom_assets, true, NULL, true);
 #endif
    SETTING_ARRAY("log_dir", settings->paths.log_dir, true, NULL, true);
 
@@ -2035,9 +2035,15 @@ static struct config_bool_setting *populate_settings_bool(
    SETTING_BOOL("sustained_performance_mode",    &settings->bools.sustained_performance_mode, true, DEFAULT_SUSTAINED_PERFORMANCE_MODE, false);
 
 #ifdef _3DS
-   SETTING_BOOL("new3ds_speedup_enable",         &settings->bools.new3ds_speedup_enable, true, DEFAULT_NEW_3DS_SPEEDUP_ENABLE,      false);
-   SETTING_BOOL("video_3ds_lcd_bottom",          &settings->bools.video_3ds_lcd_bottom,  true, DEFAULT_VIDEO_3DS_LCD_BOTTOM, false);
-   SETTING_BOOL("bottom_font_enable",            &settings->bools.bottom_font_enable,    true, DEFAULT_BOTTOM_FONT_ENABLE, false);
+   SETTING_BOOL("input_ctr_sensors_enable",      &settings->bools.input_ctr_sensors_enable,  true, DEFAULT_INPUT_CTR_SENSORS_ENABLE,  false);
+   SETTING_BOOL("input_ctr_sensors_cursor",      &settings->bools.input_ctr_sensors_cursor,  true, DEFAULT_INPUT_CTR_SENSORS_CURSOR,  false);
+   SETTING_BOOL("input_ctr_lightgun_abs",        &settings->bools.input_ctr_lightgun_abs,    true, DEFAULT_INPUT_CTR_LIGHTGUN_ABS,    false);
+   SETTING_BOOL("ctr_bottom_lcd_enable",         &settings->bools.ctr_bottom_lcd_enable,     true, DEFAULT_CTR_BOTTOM_LCD_ENABLE,     false);
+   SETTING_BOOL("ctr_bottom_font_enable",        &settings->bools.ctr_bottom_font_enable,    true, DEFAULT_CTR_BOTTOM_FONT_ENABLE,    false);
+   SETTING_BOOL("ctr_bottom_console_enable",     &settings->bools.ctr_bottom_console_enable, true, DEFAULT_CTR_BOTTOM_CONSOLE_ENABLE, false);
+   SETTING_BOOL("ctr_bottom_debug_enable",       &settings->bools.ctr_bottom_debug_enable,   true, DEFAULT_CTR_BOTTOM_DEBUG_ENABLE,   false);
+   SETTING_BOOL("ctr_n3ds_speedup_enable",       &settings->bools.ctr_n3ds_speedup_enable,   true, DEFAULT_CTR_N3DS_SPEEDUP_ENABLE,   false);
+   SETTING_BOOL("ctr_save_state_to_ram",         &settings->bools.ctr_save_state_to_ram,     true, DEFAULT_CTR_SAVE_STATE_TO_RAM,     false);
 #endif
 
 #ifdef WIIU
@@ -2156,7 +2162,7 @@ static struct config_float_setting *populate_settings_float(
    SETTING_FLOAT("video_hdr_paper_white_nits",  &settings->floats.video_hdr_paper_white_nits, true, DEFAULT_VIDEO_HDR_PAPER_WHITE_NITS, false);
    SETTING_FLOAT("video_hdr_display_contrast",  &settings->floats.video_hdr_display_contrast, true, DEFAULT_VIDEO_HDR_CONTRAST, false);
 #ifdef _3DS
-   SETTING_FLOAT("bottom_font_scale",        &settings->floats.bottom_font_scale,       true, DEFAULT_BOTTOM_FONT_SCALE,       false);
+   SETTING_FLOAT("ctr_bottom_font_scale", &settings->floats.ctr_bottom_font_scale, true, DEFAULT_CTR_BOTTOM_FONT_SCALE, false);
 #endif
    *size = count;
 
@@ -2371,7 +2377,11 @@ static struct config_uint_setting *populate_settings_uint(
    SETTING_UINT("libnx_overclock",  &settings->uints.libnx_overclock, true, SWITCH_DEFAULT_CPU_PROFILE, false);
 #endif
 #ifdef _3DS
-   SETTING_UINT("video_3ds_display_mode",       &settings->uints.video_3ds_display_mode, true, DEFAULT_VIDEO_3DS_DISPLAY_MODE, false);
+   SETTING_UINT("video_ctr_display_mode",  &settings->uints.video_ctr_display_mode,  true, DEFAULT_VIDEO_CTR_DISPLAY_MODE,  false);
+   SETTING_UINT("video_ctr_render_target", &settings->uints.video_ctr_render_target, true, DEFAULT_VIDEO_CTR_RENDER_TARGET, false);
+   SETTING_UINT("video_ctr_dual_deadzone", &settings->uints.video_ctr_dual_deadzone, true, DEFAULT_VIDEO_CTR_DUAL_DEADZONE, false);
+   SETTING_UINT("input_ctr_mouse_mode",    &settings->uints.input_ctr_mouse_mode,    true, DEFAULT_INPUT_CTR_MOUSE_MODE,    false);
+   SETTING_UINT("ctr_bottom_display_mode", &settings->uints.ctr_bottom_display_mode, true, DEFAULT_CTR_BOTTOM_DISPLAY_MODE, false);
 #endif
 #if defined(DINGUX)
    SETTING_UINT("video_dingux_ipu_filter_type", &settings->uints.video_dingux_ipu_filter_type, true, DEFAULT_DINGUX_IPU_FILTER_TYPE, false);
@@ -2466,10 +2476,12 @@ static struct config_int_setting *populate_settings_int(
 #endif
    SETTING_INT("content_favorites_size",       &settings->ints.content_favorites_size, true, DEFAULT_CONTENT_FAVORITES_SIZE, false);
 #ifdef _3DS
-   SETTING_INT("bottom_font_color_red",        &settings->ints.bottom_font_color_red,     true, DEFAULT_BOTTOM_FONT_COLOR, false);
-   SETTING_INT("bottom_font_color_green",      &settings->ints.bottom_font_color_green,   true, DEFAULT_BOTTOM_FONT_COLOR, false);
-   SETTING_INT("bottom_font_color_blue",       &settings->ints.bottom_font_color_blue,    true, DEFAULT_BOTTOM_FONT_COLOR, false);
-   SETTING_INT("bottom_font_color_opacity",    &settings->ints.bottom_font_color_opacity, true, DEFAULT_BOTTOM_FONT_COLOR, false);
+   SETTING_INT("video_ctr_dual_offset_x",       &settings->ints.video_ctr_dual_offset_x,       true, DEFAULT_VIDEO_CTR_DUAL_OFFSET_X, false);
+   SETTING_INT("video_ctr_dual_offset_y",       &settings->ints.video_ctr_dual_offset_y,       true, DEFAULT_VIDEO_CTR_DUAL_OFFSET_Y, false);
+   SETTING_INT("ctr_bottom_font_color_red",     &settings->ints.ctr_bottom_font_color_red,     true, DEFAULT_CTR_BOTTOM_FONT_COLOR,   false);
+   SETTING_INT("ctr_bottom_font_color_green",   &settings->ints.ctr_bottom_font_color_green,   true, DEFAULT_CTR_BOTTOM_FONT_COLOR,   false);
+   SETTING_INT("ctr_bottom_font_color_blue",    &settings->ints.ctr_bottom_font_color_blue,    true, DEFAULT_CTR_BOTTOM_FONT_COLOR,   false);
+   SETTING_INT("ctr_bottom_font_color_opacity", &settings->ints.ctr_bottom_font_color_opacity, true, DEFAULT_CTR_BOTTOM_FONT_COLOR,   false);
 #endif
 #ifdef HAVE_XMB
    SETTING_INT("menu_xmb_title_margin",                   &settings->ints.menu_xmb_title_margin, true, DEFAULT_XMB_TITLE_MARGIN, false);
@@ -3747,10 +3759,10 @@ static bool config_load_file(global_t *global,
    if (string_is_equal(settings->paths.directory_assets, "default"))
       *settings->paths.directory_assets = '\0';
 #ifdef _3DS
-   if (string_is_equal(settings->paths.directory_bottom_assets, "default"))
-         configuration_set_string(settings,
-               settings->paths.directory_bottom_assets,
-               g_defaults.dirs[DEFAULT_DIR_BOTTOM_ASSETS]);
+   if (string_is_equal(settings->paths.directory_ctr_bottom_assets, "default"))
+      configuration_set_string(settings,
+            settings->paths.directory_ctr_bottom_assets,
+            g_defaults.dirs[DEFAULT_DIR_BOTTOM_ASSETS]);
 #endif
    if (string_is_equal(settings->paths.directory_dynamic_wallpapers, "default"))
       *settings->paths.directory_dynamic_wallpapers = '\0';
