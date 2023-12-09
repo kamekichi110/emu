@@ -92,6 +92,7 @@ void xdg_toplevel_handle_configure_common(gfx_ctx_wayland_data_t *wl,
 
    wl->fullscreen             = false;
    wl->maximized              = false;
+   wl->suspended              = false;
 
    WL_ARRAY_FOR_EACH(state, states, const uint32_t*)
    {
@@ -115,6 +116,9 @@ void xdg_toplevel_handle_configure_common(gfx_ctx_wayland_data_t *wl,
             break;
          case XDG_TOPLEVEL_STATE_ACTIVATED:
             wl->activated  = true;
+            break;
+         case XDG_TOPLEVEL_STATE_SUSPENDED:
+            wl->suspended  = true;
             break;
       }
    }
