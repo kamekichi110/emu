@@ -1,7 +1,7 @@
 #ifndef _GX2_SHADER_UTILS_H
 #define _GX2_SHADER_UTILS_H
 
-#include <wiiu/gx2/shaders.h>
+#include <gx2/ra_shaders.h>
 
 /* incompatible with elf builds */
 /* #define GX2_CAN_ACCESS_DATA_SECTION */
@@ -78,7 +78,7 @@ typedef struct
 {
    GX2VertexShader* vs;
    GX2PixelShader* ps;
-   u8* data;
+   uint8_t* data;
 } GFDFile;
 
 GFDFile* gfd_open(const char* filename);

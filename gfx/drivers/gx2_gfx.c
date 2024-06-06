@@ -19,13 +19,11 @@
 #include <malloc.h>
 #include <math.h>
 
-#include <wiiu/os.h>
-#include <wiiu/gx2.h>
-
 #include <encodings/utf.h>
 #include <formats/image.h>
 #include <file/file_path.h>
 #include <string/stdstring.h>
+#include <proc_ui/procui.h>
 
 #include "../../driver.h"
 #include "../../configuration.h"
@@ -1016,8 +1014,8 @@ static void *gx2_init(const video_info_t *video,
 {
    unsigned i;
    float refresh_rate              = 60.0f / 1.001f;
-   u32 size                        = 0;
-   u32 tmp                         = 0;
+   uint32_t size                   = 0;
+   uint32_t tmp                    = 0;
    void *wiiuinput                 = NULL;
    wiiu_video_t *wiiu              = (wiiu_video_t*)calloc(1, sizeof(*wiiu));
    settings_t *settings            = config_get_ptr();
@@ -1039,9 +1037,9 @@ static void *gx2_init(const video_info_t *video,
 
    /* video initialize */
    wiiu->cmd_buffer                = MEM2_alloc(0x400000, 0x40);
-   u32 init_attributes[]           =
+   uint32_t init_attributes[]           =
    {
-      GX2_INIT_CMD_BUF_BASE, (u32)wiiu->cmd_buffer,
+      GX2_INIT_CMD_BUF_BASE, (uint32_t)wiiu->cmd_buffer,
       GX2_INIT_CMD_BUF_POOL_SIZE, 0x400000,
       GX2_INIT_ARGC, 0,
       GX2_INIT_ARGV, 0,
@@ -1496,19 +1494,21 @@ static void gx2_free(void *data)
    if (!wiiu)
       return;
 
-   /* clear leftover image */
-   GX2ClearColor(&wiiu->color_buffer, 0.0f, 0.0f, 0.0f, 1.0f);
-   GX2CopyColorBufferToScanBuffer(&wiiu->color_buffer, GX2_SCAN_TARGET_DRC);
-   GX2CopyColorBufferToScanBuffer(&wiiu->color_buffer, GX2_SCAN_TARGET_TV);
+   if (ProcUIInForeground()) {
+      /* clear leftover image */
+      GX2ClearColor(&wiiu->color_buffer, 0.0f, 0.0f, 0.0f, 1.0f);
+      GX2CopyColorBufferToScanBuffer(&wiiu->color_buffer, GX2_SCAN_TARGET_DRC);
+      GX2CopyColorBufferToScanBuffer(&wiiu->color_buffer, GX2_SCAN_TARGET_TV);
 
-   GX2SwapScanBuffers();
-   GX2Flush();
-   GX2DrawDone();
-   GX2WaitForVsync();
+      GX2SwapScanBuffers();
+      GX2Flush();
+      GX2DrawDone();
+      GX2WaitForVsync();
+
+      GX2SetTVEnable(GX2_DISABLE);
+      GX2SetDRCEnable(GX2_DISABLE);
+   }
    GX2Shutdown();
-
-   GX2SetTVEnable(GX2_DISABLE);
-   GX2SetDRCEnable(GX2_DISABLE);
 
    GX2DestroyShader(&frame_shader);
    GX2DestroyShader(&tex_shader);
@@ -1752,21 +1752,21 @@ static void gx2_update_uniform_block(wiiu_video_t *wiiu,
          *dst        = wiiu->shader_preset->pass[pass].frame_count_mod ?
                 frame_count % wiiu->shader_preset->pass[pass].frame_count_mod :
                 frame_count;
-         *(u32 *)dst = __builtin_bswap32(*(u32 *)dst);
+         *(uint32_t *)dst = __builtin_bswap32(*(uint32_t *)dst);
          continue;
       }
 
       if (string_is_equal(id, "FrameDirection"))
       {
          *dst        = frame_direction;
-         *(u32 *)dst = __builtin_bswap32(*(u32 *)dst);
+         *(uint32_t *)dst = __builtin_bswap32(*(uint32_t *)dst);
          continue;
       }
 
       if (string_is_equal(id, "Rotation"))
       {
-         *dst        = rotation;
-         *(u32 *)dst = __builtin_bswap32(*(u32 *)dst);
+         *dst             = rotation;
+         *(uint32_t *)dst = __builtin_bswap32(*(uint32_t *)dst);
          continue;
       }
 
@@ -1863,8 +1863,8 @@ static void gx2_update_uniform_block(wiiu_video_t *wiiu,
       {
          if (string_is_equal(id, wiiu->shader_preset->parameters[k].id))
          {
-            *dst        = wiiu->shader_preset->parameters[k].current;
-            *(u32 *)dst = __builtin_bswap32(*(u32 *)dst);
+            *dst             = wiiu->shader_preset->parameters[k].current;
+            *(uint32_t *)dst = __builtin_bswap32(*(uint32_t *)dst);
             break;
          }
       }
@@ -1901,7 +1901,7 @@ static bool gx2_frame(void *data, const void *frame,
       if (wiiu->last_vsync >= last_vsync)
       {
          GX2WaitForVsync();
-         wiiu->last_vsync = last_vsync + ms_to_ticks(17);
+         wiiu->last_vsync = last_vsync + OSMillisecondsToTicks(17);
       }
       else
          wiiu->last_vsync = last_vsync;

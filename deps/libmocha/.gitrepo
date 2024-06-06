@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/wiiu-env/libmocha
+	branch = main
+	commit = 630d9681bc0f29cc03a373cad94b76f17cfae763
+	parent = 2ca2d96f462272e2e7c1ded77ac884b9cdad010c
+	method = merge
+	cmdver = 0.4.6
