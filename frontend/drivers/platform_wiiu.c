@@ -33,9 +33,11 @@
 #include <coreinit/dynload.h>
 #include <coreinit/ios.h>
 #include <coreinit/foreground.h>
+#include <coreinit/memory.h>
 #include <coreinit/time.h>
 #include <coreinit/title.h>
 #include <proc_ui/procui.h>
+#include <proc_ui/memory.h>
 #include <padscore/wpad.h>
 #include <padscore/kpad.h>
 #include <sysapp/launch.h>
@@ -68,6 +70,7 @@
 #include <mocha/mocha.h>
 #ifdef HAVE_LIBFAT
 #include <fat.h>
+#include <gx2/display.h>
 #endif
 #endif
 
@@ -322,24 +325,23 @@ static void frontend_wiiu_exec(const char *path, bool should_load_content)
    argv_buf = NULL;
 }
 
+/* ProcUI lifetime: this gets called from main_exit/salamander_main, which we call from main
+ * This is BEFORE the final shutdown loop so we can just exec cores and it'll handle the mess */
+#ifdef IS_SALAMANDER
 static void frontend_wiiu_exitspawn(char *s, size_t len, char *args)
 {
-   bool should_load_content = false;
-#ifndef IS_SALAMANDER
-   if (wiiu_fork_mode == FRONTEND_FORK_NONE)
-      return;
-
-   switch (wiiu_fork_mode)
-   {
-      case FRONTEND_FORK_CORE_WITH_ARGS:
-         should_load_content = true;
-         break;
-      default:
-         break;
-   }
-#endif
-   frontend_wiiu_exec(s, should_load_content);
+   frontend_wiiu_exec(s, false);
 }
+#else /* ifndef IS_SALAMANDER */
+static void frontend_wiiu_exitspawn(char *s, size_t len, char *args)
+{
+   if (wiiu_fork_mode != FRONTEND_FORK_NONE) {
+      /* Load a core */
+      bool should_load_content = wiiu_fork_mode == FRONTEND_FORK_CORE_WITH_ARGS;
+      frontend_wiiu_exec(s, should_load_content);
+   }
+}
+#endif /* IS_SALAMANDER */
 
 #ifndef IS_SALAMANDER
 static bool frontend_wiiu_set_fork(enum frontend_fork fork_mode)
@@ -440,8 +442,26 @@ int main(int argc, char **argv)
    main_loop();
    main_exit(NULL);
 #endif /* IS_SALAMANDER */
-   main_teardown();
 
+   if (!ProcUIInShutdown())
+   {
+      // Final proc loop to negotiate shutdown
+      ProcUIStatus os_status;
+      while ((os_status = ProcUIProcessMessages(TRUE)) != PROCUI_STATUS_EXITING)
+      {
+         // If nobody has requested a new app already (e.g. a core switch), we'll still be in foreground
+         // We should exit to menu
+         if (os_status == PROCUI_STATUS_IN_FOREGROUND)
+            SYSLaunchMenu();
+         // Core switch puts us here, we're good to release
+         else if (os_status == PROCUI_STATUS_RELEASE_FOREGROUND)
+            ProcUIDrawDoneRelease();
+         else
+            DEBUG_LINE(); // BUG
+      }
+   }
+
+   main_teardown();
    proc_exit();
    /* We always return 0 because if we don't, it can prevent loading a
     * different RPX/ELF in HBL. */
@@ -451,7 +471,7 @@ int main(int argc, char **argv)
 static void main_setup(void)
 {
    memoryInitialize();
-   init_os_exceptions();
+   //init_os_exceptions();
    init_logging();
    init_filesystems();
    init_pad_libraries();
@@ -464,35 +484,16 @@ static void main_teardown(void)
    deinit_pad_libraries();
    deinit_filesystems();
    deinit_logging();
-   deinit_os_exceptions();
+   //deinit_os_exceptions();
    memoryRelease();
 }
 
-// https://github.com/devkitPro/wut/blob/7d9fa9e416bffbcd747f1a8e5701fd6342f9bc3d/libraries/libwhb/src/proc.c
-
-#define HBL_TITLE_ID (0x0005000013374842)
-#define MII_MAKER_JPN_TITLE_ID (0x000500101004A000)
-#define MII_MAKER_USA_TITLE_ID (0x000500101004A100)
-#define MII_MAKER_EUR_TITLE_ID (0x000500101004A200)
-
-static bool in_hbl = false;
 static bool in_aroma = false;
+static void* procui_mem1Storage = NULL;
+static void* procui_bucketStorage = NULL;
 
 static void proc_setup(void)
 {
-   uint64_t titleID = OSGetTitleID();
-
-   // Homebrew Launcher does not like the standard ProcUI application loop, sad!
-   if (titleID == HBL_TITLE_ID ||
-       titleID == MII_MAKER_JPN_TITLE_ID ||
-       titleID == MII_MAKER_USA_TITLE_ID ||
-       titleID == MII_MAKER_EUR_TITLE_ID)
-   {
-      // Important: OSEnableHomeButtonMenu must come before ProcUIInitEx.
-      OSEnableHomeButtonMenu(FALSE);
-      in_hbl = TRUE;
-   }
-
    /* Detect Aroma explicitly (it's possible to run under H&S while using Tiramisu) */
    OSDynLoad_Module rpxModule;
    if (OSDynLoad_Acquire("homebrew_rpx_loader", &rpxModule) == OS_DYNLOAD_OK)
@@ -502,33 +503,33 @@ static void proc_setup(void)
    }
 
    ProcUIInit(&proc_save_callback);
+
+   uint32_t addr = 0;
+   uint32_t size = 0;
+   if (OSGetMemBound(OS_MEM1, &addr, &size) == 0) {
+      procui_mem1Storage = malloc(size);
+      if (procui_mem1Storage) {
+         ProcUISetMEM1Storage(procui_mem1Storage, size);
+      }
+   }
+   if (OSGetForegroundBucketFreeArea(&addr, &size)) {
+      procui_bucketStorage = malloc(size);
+      if (procui_bucketStorage) {
+         ProcUISetBucketStorage(procui_bucketStorage, size);
+      }
+   }
 }
 
 static void proc_exit(void)
 {
-   /* If we're doing a normal exit while running under HBL, we must SYSRelaunchTitle.
-    * If we're in an exec (i.e. launching mocha homebrew wrapper) we must *not* do that. yay! */
-   if (in_hbl && !in_exec)
-      SYSRelaunchTitle(0, NULL);
-
-   /* Similar deal for Aroma, but exit to menu. */
-   if (!in_hbl && !in_exec)
-      SYSLaunchMenu();
-
-   /* Now just tell the OS that we really are ok to exit */
-   if (!ProcUIInShutdown())
-   {
-      for (;;)
-      {
-         ProcUIStatus status;
-         status = ProcUIProcessMessages(TRUE);
-         if (status == PROCUI_STATUS_EXITING)
-            break;
-         else if (status == PROCUI_STATUS_RELEASE_FOREGROUND)
-            ProcUIDrawDoneRelease();
-      }
+   if (procui_mem1Storage) {
+      free(procui_mem1Storage);
+      procui_mem1Storage = NULL;
    }
-
+   if (procui_bucketStorage) {
+      free(procui_bucketStorage);
+      procui_bucketStorage = NULL;
+   }
    ProcUIShutdown();
 }
 
@@ -598,23 +599,41 @@ static bool swap_is_pending(void *start_time)
 static void main_loop(void)
 {
    OSTime start_time;
+   ProcUIStatus os_status;
    int status;
 
-   for (;;)
+   OSEnableHomeButtonMenu(TRUE);
+
+   while ((os_status = ProcUIProcessMessages(TRUE)) != PROCUI_STATUS_EXITING)
    {
-      if (video_driver_get_ptr())
-      {
-         start_time = OSGetSystemTime();
-         task_queue_wait(swap_is_pending, &start_time);
+      if (os_status == PROCUI_STATUS_IN_BACKGROUND) continue;
+
+      if (os_status == PROCUI_STATUS_IN_FOREGROUND) {
+         if (video_driver_get_ptr()) {
+            start_time = OSGetSystemTime();
+            task_queue_wait(swap_is_pending, &start_time);
+         }
+         else
+            task_queue_wait(NULL, NULL);
+
+         status = runloop_iterate();
+         if (status == -1) {
+            /* RetroArch requested core switch or exit */
+            break;
+         }
+
+      } else if (os_status == PROCUI_STATUS_RELEASE_FOREGROUND) {
+         /* Home menu opened - also open RA menu
+          * This could also be like, an OS poweroff, but it doesn't really matter if we open the menu for 1 frame in
+          * that case*/
+         if (!(menu_state_get_ptr()->flags & MENU_ST_FLAG_ALIVE)) {
+            command_event(CMD_EVENT_MENU_TOGGLE, NULL);
+         }
+         ProcUIDrawDoneRelease();
       }
-      else
-         task_queue_wait(NULL, NULL);
-
-      status = runloop_iterate();
-
-      if (status == -1)
-         break;
    }
+
+   OSEnableHomeButtonMenu(FALSE);
 }
 #endif
 
