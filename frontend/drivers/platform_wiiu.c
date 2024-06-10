@@ -47,6 +47,7 @@
 #include <whb/log_udp.h>
 #include <whb/log_cafe.h>
 
+#include "../configuration.h"
 #include "../frontend.h"
 #include "../frontend_driver.h"
 #include "../../file_path_special.h"
@@ -596,13 +597,25 @@ static bool swap_is_pending(void *start_time)
    return last_vsync < *(OSTime *)start_time;
 }
 
+static bool in_main = false;
+static uint32_t proc_home_button_deny(void *context)
+{
+   /* Don't toggle the menu in, like, the middle of a core switch */
+   if (in_main)
+      command_event(CMD_EVENT_MENU_TOGGLE, NULL);
+
+   return 0;
+}
+
 static void main_loop(void)
 {
    OSTime start_time;
    ProcUIStatus os_status;
    int status;
+   settings_t *settings = config_get_ptr();
 
-   OSEnableHomeButtonMenu(TRUE);
+   ProcUIRegisterCallback(PROCUI_CALLBACK_HOME_BUTTON_DENIED, &proc_home_button_deny, NULL, 1000);
+   in_main = true;
 
    while ((os_status = ProcUIProcessMessages(TRUE)) != PROCUI_STATUS_EXITING)
    {
@@ -631,8 +644,12 @@ static void main_loop(void)
          }
          ProcUIDrawDoneRelease();
       }
+
+      if (OSIsHomeButtonMenuEnabled() != settings->bools.input_wiiu_enable_hbm)
+         OSEnableHomeButtonMenu(settings->bools.input_wiiu_enable_hbm);
    }
 
+   in_main = false;
    OSEnableHomeButtonMenu(FALSE);
 }
 #endif
