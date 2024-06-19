@@ -67,12 +67,11 @@
 #endif
 #endif
 
-#ifdef HAVE_LIBMOCHA
+// We always have a minimal version of libmocha for Salamander + core loading, so no #ifdef here
 #include <mocha/mocha.h>
 #ifdef HAVE_LIBFAT
 #include <fat.h>
 #include <gx2/display.h>
-#endif
 #endif
 
 #include "wiiu_dbg.h"
@@ -83,6 +82,7 @@
 #define WIIU_VOL_CONTENT_PATH "fs:/vol/content/"
 #define WIIU_SD_FAT_PATH "sd:/"
 #define WIIU_USB_FAT_PATH "usb:/"
+#define WIIU_USB_WFS_PATH "storage_usb:/"
 
 /**
  * The Wii U frontend driver, along with the main() method.
@@ -92,6 +92,7 @@
 static enum frontend_fork wiiu_fork_mode = FRONTEND_FORK_NONE;
 static bool have_libfat_usb = false;
 static bool have_libfat_sdcard = false;
+static bool have_wfs_usb = false;
 #endif
 static bool in_exec = false;
 
@@ -243,6 +244,12 @@ static int frontend_wiiu_parse_drive_list(void *data, bool load_content)
             msg_hash_to_str(MENU_ENUM_LABEL_FILE_DETECT_CORE_LIST_PUSH_DIR),
             enum_idx,
             FILE_TYPE_DIRECTORY, 0, 0, NULL);
+
+   if (have_wfs_usb)
+      menu_entries_append(list, WIIU_USB_WFS_PATH,
+                          msg_hash_to_str(MENU_ENUM_LABEL_FILE_DETECT_CORE_LIST_PUSH_DIR),
+                          enum_idx,
+                          FILE_TYPE_DIRECTORY, 0, 0, NULL);
 
 #endif
    return 0;
@@ -672,27 +679,42 @@ static void main_loop(void)
 
 static void init_filesystems(void)
 {
-#if defined(HAVE_LIBMOCHA) && defined(HAVE_LIBFAT)
+#if defined(HAVE_LIBMOCHA)
    if (Mocha_InitLibrary() == MOCHA_RESULT_SUCCESS)
    {
+      if (Mocha_MountFS("storage_usb", NULL, "/vol/storage_usb01") == MOCHA_RESULT_SUCCESS) {
+         if (exists(WIIU_USB_WFS_PATH))
+            have_wfs_usb = true;
+         else /* Liar! */
+            Mocha_UnmountFS("storage_usb");
+      }
+
+
+#if defined(HAVE_LIBFAT)
       have_libfat_usb = fatMount("usb", &Mocha_usb_disc_interface, 0, 512, 128);
       /* Mounting SD card with libfat is unsafe under Aroma */
       if (!in_aroma)
          have_libfat_sdcard = fatMount("sd", &Mocha_sdio_disc_interface, 0, 512, 128);
+#endif /* HAVE_LIBFAT */
    }
-#endif
+#endif /* HAVE_LIBMOCHA */
 }
 
 static void deinit_filesystems(void)
 {
-#if defined(HAVE_LIBMOCHA) && defined(HAVE_LIBFAT)
+#if defined(HAVE_LIBMOCHA)
+   if (have_wfs_usb)
+      Mocha_UnmountFS("storage_usb");
+
+#if defined(HAVE_LIBFAT)
    if (have_libfat_usb)
       fatUnmount("usb");
    if (have_libfat_sdcard)
       fatUnmount("sd");
+#endif /* HAVE_LIBFAT */
 
    Mocha_DeInitLibrary();
-#endif
+#endif /* HAVE_LIBMOCHA */
 }
 
 static devoptab_t dotab_stdout =

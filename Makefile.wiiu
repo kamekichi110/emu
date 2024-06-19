@@ -41,7 +41,7 @@ OBJ += wiiu/system/exception_handler.o
 OBJ += wiiu/system/missing_libc_functions.o
 
 ifeq ($(SALAMANDER_BUILD),1)
-   DEFINES += -DRARCH_CONSOLE -DIS_SALAMANDER -DHAVE_LIBMOCHA
+   DEFINES += -DRARCH_CONSOLE -DIS_SALAMANDER
 
    INCDIRS += -Ideps/libmocha/include
 
